@@ -187,19 +187,12 @@ def login_user(
 
 
     response.set_cookie(
-
-        key="taskflow_token",
-
-        value=token,
-
-        httponly=True,
-
-        secure=False,
-
-        samesite="lax",
-
-        max_age=60 * 60 * 24,
-
+    key="taskflow_token",
+    value=token,
+    httponly=True,
+    secure=True,
+    samesite="none",
+    max_age=60 * 60 * 24,
     )
 
 
