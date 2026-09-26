@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "https://taskflow-task-management-system-2.onrender.com";
 
 function Login({ onLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState("");

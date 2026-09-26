@@ -193,7 +193,7 @@ function Sidebar({
             {user?.profile_image ? (
 
               <img
-                src={`http://localhost:8000${user.profile_image}`}
+                src={`https://taskflow-task-management-system-2.onrender.com${user.profile_image}`}
                 alt="Profile"
                 className="sidebar-profile-image"
               />

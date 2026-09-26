@@ -8,7 +8,7 @@ import Settings from "./Settings";
 
 
 const API_URL =
-  "http://localhost:8000";
+  "https://taskflow-task-management-system-2.onrender.com";
 
 
 function UserDashboard({
@@ -364,7 +364,7 @@ function UserDashboard({
               {user?.profile_image ? (
 
                 <img
-                  src={`http://localhost:8000${user.profile_image}`}
+                  src={`https://taskflow-task-management-system-2.onrender.com${user.profile_image}`}
                   alt="Profile"
                   className="sidebar-profile-image"
                 />

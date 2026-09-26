@@ -5,7 +5,7 @@ import Register from "./components/Register";
 import UserDashboard from "./components/UserDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "https://taskflow-task-management-system-2.onrender.com";
 
 function App() {
   const [user, setUser] = useState(null);
