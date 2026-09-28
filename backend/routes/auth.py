@@ -44,77 +44,45 @@ def register_user(
 
     email = user.email.lower()
 
-
-    existing_user = (
-        users_collection.find_one(
-            {
-                "email": email
-            }
-        )
+    existing_user = users_collection.find_one(
+        {
+            "email": email
+        }
     )
 
-
     if existing_user:
-
         raise HTTPException(
             status_code=400,
             detail="Email already registered"
         )
 
-
     hashed_password = hash_password(
         user.password
     )
 
-
     user_data = {
-
         "name": user.name,
-
         "email": email,
-
         "password": hashed_password,
-
         "role": "user",
-
         "auth_provider": "email",
-
         "provider_id": None,
-
         "profile_image": None,
-
     }
 
-
-    result = (
-        users_collection.insert_one(
-            user_data
-        )
+    result = users_collection.insert_one(
+        user_data
     )
 
-
     return {
-
-        "message":
-            "Account created successfully",
+        "message": "Account created successfully",
 
         "user": {
-
-            "id":
-                str(result.inserted_id),
-
-            "name":
-                user.name,
-
-            "email":
-                email,
-
-            "role":
-                "user",
-
-            "profile_image":
-                None,
-
+            "id": str(result.inserted_id),
+            "name": user.name,
+            "email": email,
+            "role": "user",
+            "profile_image": None,
         }
     }
 
@@ -131,31 +99,23 @@ def login_user(
 
     email = user.email.lower()
 
-
-    existing_user = (
-        users_collection.find_one(
-            {
-                "email": email
-            }
-        )
+    existing_user = users_collection.find_one(
+        {
+            "email": email
+        }
     )
 
-
     if not existing_user:
-
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-
-    stored_password = (
-        existing_user.get("password")
+    stored_password = existing_user.get(
+        "password"
     )
 
-
     if not stored_password:
-
         raise HTTPException(
             status_code=400,
             detail=(
@@ -164,73 +124,58 @@ def login_user(
             )
         )
 
-
     password_valid = verify_password(
         user.password,
         stored_password
     )
 
-
     if not password_valid:
-
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
-
     token = create_access_token(
-        str(
-            existing_user["_id"]
-        )
+        str(existing_user["_id"])
     )
 
-
+    # Keep cookie for compatibility
     response.set_cookie(
-    key="taskflow_token",
-    value=token,
-    httponly=True,
-    secure=True,
-    samesite="none",
-    max_age=60 * 60 * 24,
+        key="taskflow_token",
+        value=token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=60 * 60 * 24,
     )
 
-
+    # Also return JWT to frontend
     return {
+        "message": "Login successful",
 
-        "message":
-            "Login successful",
+        "access_token": token,
+
+        "token_type": "bearer",
 
         "user": {
-
-            "id":
-                str(
-                    existing_user["_id"]
-                ),
-
-            "name":
-                existing_user.get(
-                    "name",
-                    ""
-                ),
-
-            "email":
-                existing_user.get(
-                    "email",
-                    ""
-                ),
-
-            "role":
-                existing_user.get(
-                    "role",
-                    "user"
-                ),
-
-            "profile_image":
-                existing_user.get(
-                    "profile_image"
-                ),
-
+            "id": str(
+                existing_user["_id"]
+            ),
+            "name": existing_user.get(
+                "name",
+                ""
+            ),
+            "email": existing_user.get(
+                "email",
+                ""
+            ),
+            "role": existing_user.get(
+                "role",
+                "user"
+            ),
+            "profile_image": existing_user.get(
+                "profile_image"
+            ),
         }
     }
 
@@ -247,37 +192,25 @@ def get_me(
 ):
 
     return {
-
         "user": {
-
-            "id":
-                str(
-                    current_user["_id"]
-                ),
-
-            "name":
-                current_user.get(
-                    "name",
-                    ""
-                ),
-
-            "email":
-                current_user.get(
-                    "email",
-                    ""
-                ),
-
-            "role":
-                current_user.get(
-                    "role",
-                    "user"
-                ),
-
-            "profile_image":
-                current_user.get(
-                    "profile_image"
-                ),
-
+            "id": str(
+                current_user["_id"]
+            ),
+            "name": current_user.get(
+                "name",
+                ""
+            ),
+            "email": current_user.get(
+                "email",
+                ""
+            ),
+            "role": current_user.get(
+                "role",
+                "user"
+            ),
+            "profile_image": current_user.get(
+                "profile_image"
+            ),
         }
     }
 
@@ -295,8 +228,6 @@ def logout(
         key="taskflow_token"
     )
 
-
     return {
-        "message":
-            "Logged out successfully"
+        "message": "Logged out successfully"
     }

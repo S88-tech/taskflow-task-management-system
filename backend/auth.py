@@ -119,15 +119,49 @@ def get_current_user(
     request: Request
 ):
     """
-    Get currently authenticated user
-    from the HttpOnly JWT cookie.
+    Get currently authenticated user.
+
+    Supports:
+    1. Authorization: Bearer <token>
+    2. HttpOnly taskflow_token cookie
     """
 
-    token = request.cookies.get(
-        "taskflow_token"
+    token = None
+
+    # =========================================
+    # FIRST: CHECK AUTHORIZATION HEADER
+    # =========================================
+
+    authorization = request.headers.get(
+        "Authorization"
     )
 
-    # No token
+    if authorization:
+
+        parts = authorization.split(" ", 1)
+
+        if (
+            len(parts) == 2
+            and parts[0].lower() == "bearer"
+        ):
+            token = parts[1]
+
+
+    # =========================================
+    # SECOND: CHECK COOKIE
+    # =========================================
+
+    if not token:
+
+        token = request.cookies.get(
+            "taskflow_token"
+        )
+
+
+    # =========================================
+    # NO TOKEN
+    # =========================================
+
     if not token:
 
         raise HTTPException(
@@ -135,7 +169,11 @@ def get_current_user(
             detail="Authentication required"
         )
 
-    # Decode JWT
+
+    # =========================================
+    # DECODE JWT
+    # =========================================
+
     try:
 
         payload = jwt.decode(
@@ -160,7 +198,11 @@ def get_current_user(
             detail="Invalid or expired token"
         )
 
-    # Validate MongoDB ObjectId
+
+    # =========================================
+    # VALIDATE MONGODB OBJECT ID
+    # =========================================
+
     if not ObjectId.is_valid(user_id):
 
         raise HTTPException(
@@ -168,12 +210,17 @@ def get_current_user(
             detail="Invalid user ID"
         )
 
-    # Find user
+
+    # =========================================
+    # FIND USER
+    # =========================================
+
     user = users_collection.find_one(
         {
             "_id": ObjectId(user_id)
         }
     )
+
 
     if not user:
 
@@ -181,6 +228,7 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found"
         )
+
 
     return user
 

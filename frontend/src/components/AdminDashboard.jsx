@@ -15,11 +15,31 @@ const API_URL =
   "https://taskflow-task-management-system-2.onrender.com";
 
 
+/* =========================================================
+   AUTH HEADERS
+   ========================================================= */
+
+const getAuthHeaders = () => {
+
+  const token =
+    sessionStorage.getItem(
+      "taskflow_token"
+    );
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+};
+
+
 function AdminDashboard({
   user,
   onLogout,
   onUserUpdated,
 }) {
+
 
   // =====================================================
   // STATE
@@ -68,25 +88,34 @@ function AdminDashboard({
         await fetch(
           `${API_URL}/tasks/`,
           {
-            credentials:
-              "include",
+            method: "GET",
+
+            credentials: "include",
+
+            headers: {
+              ...getAuthHeaders(),
+            },
           }
         );
 
+
       const data =
         await response.json();
+
 
       if (!response.ok) {
 
         throw new Error(
           data.detail ||
-            "Failed to fetch tasks"
+          "Failed to fetch tasks"
         );
       }
+
 
       setTasks(
         data.tasks || []
       );
+
 
     } catch (error) {
 
@@ -97,12 +126,14 @@ function AdminDashboard({
 
       setError(
         error.message ||
-          "Unable to load tasks."
+        "Unable to load tasks."
       );
+
 
     } finally {
 
       setLoading(false);
+
     }
   };
 
@@ -119,25 +150,34 @@ function AdminDashboard({
         await fetch(
           `${API_URL}/users/`,
           {
-            credentials:
-              "include",
+            method: "GET",
+
+            credentials: "include",
+
+            headers: {
+              ...getAuthHeaders(),
+            },
           }
         );
 
+
       const data =
         await response.json();
+
 
       if (!response.ok) {
 
         throw new Error(
           data.detail ||
-            "Failed to fetch users"
+          "Failed to fetch users"
         );
       }
+
 
       setUsers(
         data.users || []
       );
+
 
     } catch (error) {
 
@@ -171,7 +211,9 @@ function AdminDashboard({
   ) => {
 
     setActivePage(page);
+
     setSearchText("");
+
 
     if (
       page === "completed"
@@ -184,6 +226,7 @@ function AdminDashboard({
     } else {
 
       setFilter("all");
+
     }
   };
 
@@ -195,7 +238,9 @@ function AdminDashboard({
   const handleNewTask = () => {
 
     setEditingTask(null);
+
     setIsModalOpen(true);
+
   };
 
 
@@ -215,6 +260,7 @@ function AdminDashboard({
     );
 
     setIsModalOpen(false);
+
   };
 
 
@@ -227,7 +273,9 @@ function AdminDashboard({
   ) => {
 
     setEditingTask(task);
+
     setIsModalOpen(true);
+
   };
 
 
@@ -251,7 +299,9 @@ function AdminDashboard({
     );
 
     setIsModalOpen(false);
+
     setEditingTask(null);
+
   };
 
 
@@ -268,9 +318,11 @@ function AdminDashboard({
         "Are you sure you want to delete this task?"
       );
 
+
     if (!confirmed) {
       return;
     }
+
 
     try {
 
@@ -279,21 +331,28 @@ function AdminDashboard({
           `${API_URL}/tasks/${taskId}`,
           {
             method: "DELETE",
-            credentials:
-              "include",
+
+            credentials: "include",
+
+            headers: {
+              ...getAuthHeaders(),
+            },
           }
         );
 
+
       const data =
         await response.json();
+
 
       if (!response.ok) {
 
         throw new Error(
           data.detail ||
-            "Failed to delete task"
+          "Failed to delete task"
         );
       }
+
 
       setTasks(
         (currentTasks) =>
@@ -302,6 +361,7 @@ function AdminDashboard({
               task.id !== taskId
           )
       );
+
 
     } catch (error) {
 
@@ -312,8 +372,9 @@ function AdminDashboard({
 
       alert(
         error.message ||
-          "Unable to delete task."
+        "Unable to delete task."
       );
+
     }
   };
 
@@ -333,6 +394,7 @@ function AdminDashboard({
         ? "pending"
         : "completed";
 
+
     try {
 
       const response =
@@ -344,10 +406,11 @@ function AdminDashboard({
             headers: {
               "Content-Type":
                 "application/json",
+
+              ...getAuthHeaders(),
             },
 
-            credentials:
-              "include",
+            credentials: "include",
 
             body: JSON.stringify({
               status: newStatus,
@@ -355,16 +418,19 @@ function AdminDashboard({
           }
         );
 
+
       const data =
         await response.json();
+
 
       if (!response.ok) {
 
         throw new Error(
           data.detail ||
-            "Failed to update task status"
+          "Failed to update task status"
         );
       }
+
 
       setTasks(
         (currentTasks) =>
@@ -377,6 +443,7 @@ function AdminDashboard({
           )
       );
 
+
     } catch (error) {
 
       console.error(
@@ -386,8 +453,9 @@ function AdminDashboard({
 
       alert(
         error.message ||
-          "Unable to update task status."
+        "Unable to update task status."
       );
+
     }
   };
 
@@ -401,6 +469,7 @@ function AdminDashboard({
   ) => {
 
     setSearchText(value);
+
   };
 
 
@@ -413,6 +482,7 @@ function AdminDashboard({
   ) => {
 
     setFilter(value);
+
 
     if (
       value === "completed"
@@ -427,6 +497,7 @@ function AdminDashboard({
       setActivePage(
         "all"
       );
+
     }
   };
 
@@ -438,7 +509,9 @@ function AdminDashboard({
   const handleCloseModal = () => {
 
     setIsModalOpen(false);
+
     setEditingTask(null);
+
   };
 
 
@@ -454,8 +527,12 @@ function AdminDashboard({
         `${API_URL}/auth/logout`,
         {
           method: "POST",
-          credentials:
-            "include",
+
+          credentials: "include",
+
+          headers: {
+            ...getAuthHeaders(),
+          },
         }
       );
 
@@ -468,7 +545,12 @@ function AdminDashboard({
 
     } finally {
 
+      sessionStorage.removeItem(
+        "taskflow_token"
+      );
+
       onLogout();
+
     }
   };
 
@@ -480,12 +562,14 @@ function AdminDashboard({
   const totalTasks =
     tasks.length;
 
+
   const completedTasks =
     tasks.filter(
       (task) =>
         task.status ===
         "completed"
     ).length;
+
 
   const pendingTasks =
     tasks.filter(
@@ -517,6 +601,7 @@ function AdminDashboard({
         searchText
           .toLowerCase()
           .trim();
+
 
       const matchesSearch =
         task.title
@@ -566,6 +651,7 @@ function AdminDashboard({
         matchesSearch &&
         matchesFilter
       );
+
     });
 
 
@@ -581,6 +667,7 @@ function AdminDashboard({
     ) {
 
       return "Completed Tasks";
+
     }
 
 
@@ -590,10 +677,12 @@ function AdminDashboard({
     ) {
 
       return "All Tasks";
+
     }
 
 
     return "My Tasks";
+
   };
 
 
@@ -640,6 +729,7 @@ function AdminDashboard({
         </main>
 
       </div>
+
     );
   }
 
@@ -787,6 +877,7 @@ function AdminDashboard({
         </main>
 
       </div>
+
     );
   }
 
@@ -813,10 +904,6 @@ function AdminDashboard({
 
 
       <main className="main">
-
-        {/* =================================================
-            HEADER
-            ================================================= */}
 
         <Header
           onNewTask={
@@ -1109,6 +1196,7 @@ function AdminDashboard({
       )}
 
     </div>
+
   );
 }
 
