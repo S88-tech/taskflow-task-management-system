@@ -45,11 +45,10 @@ users_collection = database["users"]
 def get_tasks(
     current_user=Depends(get_current_user),
 ):
+
     if current_user.get("role") == "admin":
 
-        tasks = tasks_collection.find(
-            {}
-        )
+        tasks = tasks_collection.find({})
 
     else:
 
@@ -95,9 +94,7 @@ def get_task(
 
         query["assigned_to"] = current_user["_id"]
 
-    task = tasks_collection.find_one(
-        query
-    )
+    task = tasks_collection.find_one(query)
 
     if not task:
 
@@ -174,6 +171,13 @@ def update_task_status(
 # =========================================================
 # CREATE TASK
 # ADMIN ONLY
+#
+# SINGLE USER:
+# assigned_to = user ObjectId
+#
+# ALL USERS:
+# assigned_to = "all"
+#
 # =========================================================
 
 @router.post(
@@ -185,13 +189,96 @@ def create_task(
     current_user=Depends(require_admin),
 ):
 
-    # -----------------------------------------------------
-    # VALIDATE USER ID
-    # -----------------------------------------------------
+    # =====================================================
+    # ASSIGN TASK TO ALL NORMAL USERS
+    # =====================================================
 
-    if not ObjectId.is_valid(
-        task.assigned_to
-    ):
+    if task.assigned_to == "all":
+
+        # ---------------------------------------------
+        # GET ALL NORMAL USERS
+        # ---------------------------------------------
+
+        normal_users = list(
+            users_collection.find(
+                {
+                    "role": "user"
+                }
+            )
+        )
+
+        if not normal_users:
+
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No normal users found.",
+            )
+
+        # ---------------------------------------------
+        # CREATE ONE TASK FOR EACH USER
+        # ---------------------------------------------
+
+        task_documents = []
+
+        for user in normal_users:
+
+            task_documents.append(
+                {
+                    "title": task.title.strip(),
+
+                    "description": task.description.strip(),
+
+                    "priority": task.priority,
+
+                    "dueDate": task.dueDate.isoformat(),
+
+                    "status": "pending",
+
+                    "created_by": current_user["_id"],
+
+                    "assigned_to": user["_id"],
+                }
+            )
+
+        # ---------------------------------------------
+        # INSERT ALL TASKS
+        # ---------------------------------------------
+
+        result = tasks_collection.insert_many(
+            task_documents
+        )
+
+        # ---------------------------------------------
+        # GET CREATED TASKS
+        # ---------------------------------------------
+
+        created_tasks = list(
+            tasks_collection.find(
+                {
+                    "_id": {
+                        "$in": result.inserted_ids
+                    }
+                }
+            )
+        )
+
+        return {
+            "message": "Task assigned to all users successfully",
+
+            "assigned_count": len(created_tasks),
+
+            "tasks": [
+                task_serializer(task)
+                for task in created_tasks
+            ],
+        }
+
+
+    # =====================================================
+    # ASSIGN TASK TO SINGLE USER
+    # =====================================================
+
+    if not ObjectId.is_valid(task.assigned_to):
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -202,9 +289,10 @@ def create_task(
         task.assigned_to
     )
 
-    # -----------------------------------------------------
+
+    # =====================================================
     # CHECK USER EXISTS
-    # -----------------------------------------------------
+    # =====================================================
 
     assigned_user = users_collection.find_one(
         {
@@ -219,9 +307,10 @@ def create_task(
             detail="Assigned user not found",
         )
 
-    # -----------------------------------------------------
+
+    # =====================================================
     # ONLY NORMAL USERS CAN BE ASSIGNED
-    # -----------------------------------------------------
+    # =====================================================
 
     if assigned_user.get("role") != "user":
 
@@ -230,23 +319,33 @@ def create_task(
             detail="Tasks can only be assigned to normal users.",
         )
 
-    # -----------------------------------------------------
+
+    # =====================================================
     # CREATE TASK
-    # -----------------------------------------------------
+    # =====================================================
 
     task_data = {
+
         "title": task.title.strip(),
+
         "description": task.description.strip(),
+
         "priority": task.priority,
+
         "dueDate": task.dueDate.isoformat(),
+
         "status": "pending",
+
         "created_by": current_user["_id"],
+
         "assigned_to": assigned_user_id,
     }
+
 
     result = tasks_collection.insert_one(
         task_data
     )
+
 
     created_task = tasks_collection.find_one(
         {
@@ -254,8 +353,11 @@ def create_task(
         }
     )
 
+
     return {
+
         "message": "Task created and assigned successfully",
+
         "task": task_serializer(
             created_task
         ),
@@ -281,28 +383,30 @@ def update_task(
             detail="Invalid task ID",
         )
 
-    # -----------------------------------------------------
-    # VALIDATE ASSIGNED USER
-    # -----------------------------------------------------
 
-    if not ObjectId.is_valid(
-        task.assigned_to
-    ):
+    # =====================================================
+    # VALIDATE ASSIGNED USER
+    # =====================================================
+
+    if not ObjectId.is_valid(task.assigned_to):
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid assigned user ID",
         )
 
+
     assigned_user_id = ObjectId(
         task.assigned_to
     )
+
 
     assigned_user = users_collection.find_one(
         {
             "_id": assigned_user_id
         }
     )
+
 
     if not assigned_user:
 
@@ -311,6 +415,7 @@ def update_task(
             detail="Assigned user not found",
         )
 
+
     if assigned_user.get("role") != "user":
 
         raise HTTPException(
@@ -318,27 +423,38 @@ def update_task(
             detail="Tasks can only be assigned to normal users.",
         )
 
-    # -----------------------------------------------------
+
+    # =====================================================
     # UPDATE TASK
-    # -----------------------------------------------------
+    # =====================================================
 
     updated_data = {
+
         "title": task.title.strip(),
+
         "description": task.description.strip(),
+
         "priority": task.priority,
+
         "dueDate": task.dueDate.isoformat(),
+
         "status": task.status,
+
         "assigned_to": assigned_user_id,
     }
 
+
     result = tasks_collection.update_one(
+
         {
             "_id": ObjectId(task_id)
         },
+
         {
             "$set": updated_data
         },
     )
+
 
     if result.matched_count == 0:
 
@@ -347,14 +463,18 @@ def update_task(
             detail="Task not found",
         )
 
+
     updated_task = tasks_collection.find_one(
         {
             "_id": ObjectId(task_id)
         }
     )
 
+
     return {
+
         "message": "Task updated successfully",
+
         "task": task_serializer(
             updated_task
         ),
@@ -379,11 +499,13 @@ def delete_task(
             detail="Invalid task ID",
         )
 
+
     result = tasks_collection.delete_one(
         {
             "_id": ObjectId(task_id)
         }
     )
+
 
     if result.deleted_count == 0:
 
@@ -391,6 +513,7 @@ def delete_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
+
 
     return {
         "message": "Task deleted successfully"

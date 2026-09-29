@@ -3,7 +3,6 @@ import { useState } from "react";
 const API_URL =
   "https://taskflow-task-management-system-2.onrender.com";
 
-
 // =====================================================
 // AUTH HEADERS
 // =====================================================
@@ -197,7 +196,6 @@ function TaskModal({
                 "Content-Type":
                   "application/json",
 
-                // ⭐ JWT Bearer Token
                 ...getAuthHeaders(),
 
               },
@@ -213,8 +211,8 @@ function TaskModal({
             }
           );
 
-
       }
+
 
       // =================================================
       // CREATE TASK
@@ -234,7 +232,6 @@ function TaskModal({
                 "Content-Type":
                   "application/json",
 
-                // ⭐ JWT Bearer Token
                 ...getAuthHeaders(),
 
               },
@@ -283,9 +280,38 @@ function TaskModal({
 
       } else {
 
-        onTaskCreated(
-          data.task
-        );
+        /*
+         * When "All Users" is selected,
+         * backend returns:
+         *
+         * {
+         *   message: "...",
+         *   assigned_count: number,
+         *   tasks: [...]
+         * }
+         *
+         * For normal user assignment,
+         * backend returns:
+         *
+         * {
+         *   message: "...",
+         *   task: {...}
+         * }
+         */
+
+        if (assignedTo === "all") {
+
+          onTaskCreated(
+            data.tasks
+          );
+
+        } else {
+
+          onTaskCreated(
+            data.task
+          );
+
+        }
 
       }
 
@@ -595,6 +621,24 @@ function TaskModal({
                 Select a user
               </option>
 
+
+              {/* =================================================
+                  ALL USERS
+                  CREATE MODE ONLY
+                  ================================================= */}
+
+              {!isEditing && normalUsers.length > 0 && (
+
+                <option value="all">
+                  All Users
+                </option>
+
+              )}
+
+
+              {/* =================================================
+                  NORMAL USERS
+                  ================================================= */}
 
               {normalUsers.map(
                 (item) => (

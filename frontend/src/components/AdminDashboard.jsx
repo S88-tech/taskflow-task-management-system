@@ -109,6 +109,7 @@ function AdminDashboard({
           data.detail ||
           "Failed to fetch tasks"
         );
+
       }
 
 
@@ -124,6 +125,7 @@ function AdminDashboard({
         error
       );
 
+
       setError(
         error.message ||
         "Unable to load tasks."
@@ -135,6 +137,7 @@ function AdminDashboard({
       setLoading(false);
 
     }
+
   };
 
 
@@ -171,6 +174,7 @@ function AdminDashboard({
           data.detail ||
           "Failed to fetch users"
         );
+
       }
 
 
@@ -187,6 +191,7 @@ function AdminDashboard({
       );
 
     }
+
   };
 
 
@@ -228,6 +233,7 @@ function AdminDashboard({
       setFilter("all");
 
     }
+
   };
 
 
@@ -252,12 +258,57 @@ function AdminDashboard({
     newTask
   ) => {
 
-    setTasks(
-      (currentTasks) => [
-        ...currentTasks,
-        newTask,
-      ]
-    );
+    /*
+     * SINGLE USER:
+     *
+     * newTask = {
+     *   id: "...",
+     *   title: "...",
+     *   ...
+     * }
+     *
+     * ALL USERS:
+     *
+     * newTask = [
+     *   task1,
+     *   task2,
+     *   task3,
+     *   ...
+     * ]
+     */
+
+
+    // =================================================
+    // ALL USERS
+    // =================================================
+
+    if (Array.isArray(newTask)) {
+
+      setTasks(
+        (currentTasks) => [
+          ...currentTasks,
+          ...newTask,
+        ]
+      );
+
+    }
+
+
+    // =================================================
+    // SINGLE USER
+    // =================================================
+
+    else {
+
+      setTasks(
+        (currentTasks) => [
+          ...currentTasks,
+          newTask,
+        ]
+      );
+
+    }
+
 
     setIsModalOpen(false);
 
@@ -298,6 +349,7 @@ function AdminDashboard({
         )
     );
 
+
     setIsModalOpen(false);
 
     setEditingTask(null);
@@ -320,7 +372,9 @@ function AdminDashboard({
 
 
     if (!confirmed) {
+
       return;
+
     }
 
 
@@ -351,6 +405,7 @@ function AdminDashboard({
           data.detail ||
           "Failed to delete task"
         );
+
       }
 
 
@@ -370,12 +425,14 @@ function AdminDashboard({
         error
       );
 
+
       alert(
         error.message ||
         "Unable to delete task."
       );
 
     }
+
   };
 
 
@@ -415,6 +472,7 @@ function AdminDashboard({
             body: JSON.stringify({
               status: newStatus,
             }),
+
           }
         );
 
@@ -429,6 +487,7 @@ function AdminDashboard({
           data.detail ||
           "Failed to update task status"
         );
+
       }
 
 
@@ -451,12 +510,14 @@ function AdminDashboard({
         error
       );
 
+
       alert(
         error.message ||
         "Unable to update task status."
       );
 
     }
+
   };
 
 
@@ -499,6 +560,7 @@ function AdminDashboard({
       );
 
     }
+
   };
 
 
@@ -536,6 +598,7 @@ function AdminDashboard({
         }
       );
 
+
     } catch (error) {
 
       console.error(
@@ -552,6 +615,7 @@ function AdminDashboard({
       onLogout();
 
     }
+
   };
 
 
@@ -624,6 +688,7 @@ function AdminDashboard({
         matchesFilter =
           task.status ===
           "pending";
+
       }
 
 
@@ -634,6 +699,7 @@ function AdminDashboard({
         matchesFilter =
           task.status ===
           "completed";
+
       }
 
 
@@ -644,6 +710,7 @@ function AdminDashboard({
         matchesFilter =
           task.priority ===
           "high";
+
       }
 
 
@@ -731,6 +798,7 @@ function AdminDashboard({
       </div>
 
     );
+
   }
 
 
@@ -879,6 +947,7 @@ function AdminDashboard({
       </div>
 
     );
+
   }
 
 
@@ -997,13 +1066,18 @@ function AdminDashboard({
               </h2>
 
               <p>
+
                 Showing{" "}
                 {
                   filteredTasks.length
                 }{" "}
+
                 of{" "}
+
                 {totalTasks}{" "}
+
                 tasks
+
               </p>
 
             </div>
@@ -1198,6 +1272,7 @@ function AdminDashboard({
     </div>
 
   );
+
 }
 
 
