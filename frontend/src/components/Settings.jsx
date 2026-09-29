@@ -3,6 +3,17 @@ import { useRef, useState } from "react";
 
 const API_URL = "https://taskflow-task-management-system-2.onrender.com";
 
+const getAuthHeaders = () => {
+  const token = sessionStorage.getItem("taskflow_token");
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+};
+
+
 
 function Settings({
   user,
@@ -178,6 +189,10 @@ function Settings({
           {
             method: "PUT",
 
+            headers: {
+              ...getAuthHeaders(),
+            },
+
             credentials: "include",
 
             body: formData,
@@ -293,6 +308,7 @@ function Settings({
               headers: {
                 "Content-Type":
                   "application/json",
+                ...getAuthHeaders(),
               },
 
               credentials: "include",

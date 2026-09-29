@@ -11,6 +11,17 @@ const API_URL =
   "https://taskflow-task-management-system-2.onrender.com";
 
 
+const getAuthHeaders = () => {
+  const token = sessionStorage.getItem("taskflow_token");
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+};
+
+
 function UserDashboard({
   user,
   onLogout,
@@ -51,8 +62,12 @@ function UserDashboard({
         await fetch(
           `${API_URL}/tasks/`,
           {
+            method: "GET",
             credentials:
               "include",
+            headers: {
+              ...getAuthHeaders(),
+            },
           }
         );
 
@@ -143,6 +158,7 @@ function UserDashboard({
             headers: {
               "Content-Type":
                 "application/json",
+              ...getAuthHeaders(),
             },
 
             credentials:
@@ -222,6 +238,10 @@ function UserDashboard({
 
 
     } finally {
+
+      sessionStorage.removeItem(
+        "taskflow_token"
+      );
 
       onLogout();
 
